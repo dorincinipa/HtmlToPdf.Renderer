@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HtmlRenderer/HtmlRenderer.csproj" />
+    <Project Path="src/HtmlToPdf.Renderer/HtmlToPdf.Renderer.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HtmlToPdf.Renderer.Tests/HtmlToPdf.Renderer.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/HtmlToPdf.Demo/HtmlToPdf.Demo.csproj" />
+    <Project Path="samples/HtmlToPdf.WpfDemo/HtmlToPdf.WpfDemo.csproj" />
+  </Folder>
+</Solution>
