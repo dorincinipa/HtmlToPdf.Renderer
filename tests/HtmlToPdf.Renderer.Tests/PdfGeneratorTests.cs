@@ -1,3 +1,5 @@
+using PdfSharp.Pdf;
+
 namespace HtmlToPdf.Renderer.Tests;
 
 public class PdfGeneratorTests
@@ -133,6 +135,32 @@ public class PdfGeneratorTests
         var doc = PdfGenerator.GeneratePdf(html, DefaultConfig());
 
         Assert.True(doc.PageCount >= 2, $"Expected at least 2 pages but got {doc.PageCount}");
+    }
+
+    [Fact]
+    public void AddPdfPages_AppendsToExistingDocument()
+    {
+        var doc = new PdfDocument();
+        doc.AddPage(); // pre-existing page
+        Assert.Equal(1, doc.PageCount);
+
+        PdfGenerator.AddPdfPages(doc, "<p>Appended content</p>", DefaultConfig());
+
+        Assert.True(doc.PageCount >= 2, $"Expected at least 2 pages but got {doc.PageCount}");
+    }
+
+    [Fact]
+    public void AddPdfPages_MultipleCalls_AccumulatePages()
+    {
+        var doc = new PdfDocument();
+
+        PdfGenerator.AddPdfPages(doc, "<p>Section 1</p>", DefaultConfig());
+        var countAfterFirst = doc.PageCount;
+
+        PdfGenerator.AddPdfPages(doc, "<p>Section 2</p>", DefaultConfig());
+
+        Assert.True(doc.PageCount > countAfterFirst,
+            $"Expected more pages after second call, but still {doc.PageCount}");
     }
 
     [Fact]

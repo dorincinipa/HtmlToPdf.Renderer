@@ -10,7 +10,13 @@ public static class PdfGenerator
     public static PdfDocument GeneratePdf(string html, PdfGenerateConfig config)
     {
         var document = new PdfDocument();
-        var adapter = PdfSharpAdapter.Instance;
+        AddPdfPages(document, html, config);
+        return document;
+    }
+
+    public static void AddPdfPages(PdfDocument document, string html, PdfGenerateConfig config)
+    {
+        var adapter = RenderAdapter.Instance;
         var effectivePageSize = config.GetEffectivePageSize();
 
         double pageWidth = effectivePageSize.Width;
@@ -60,7 +66,5 @@ public static class PdfGenerator
             // PerformPaint alone only uses it for the clip rect
             container.PerformPaint(pageGraphics);
         }
-
-        return document;
     }
 }
