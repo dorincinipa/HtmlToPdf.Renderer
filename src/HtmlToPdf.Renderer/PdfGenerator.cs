@@ -7,44 +7,44 @@ namespace HtmlToPdf.Renderer;
 
 public static class PdfGenerator
 {
-    public static PdfDocument GeneratePdf(string html, PdfGenerateConfig config)
+    public static PdfBuilder Create() => new();
+
+    public static PdfDocument GeneratePdf(string html, PdfOptions options)
     {
         var document = new PdfDocument();
-        AddPdfPages(document, html, config);
+        AddPdfPages(document, html, options);
         return document;
     }
 
-    public static async Task<byte[]> GeneratePdfAsync(string html, PdfGenerateConfig config)
+    public static async Task<byte[]> GeneratePdfAsync(string html, PdfOptions options)
     {
-        using var document = GeneratePdf(html, config);
+        using var document = GeneratePdf(html, options);
         using var stream = new MemoryStream();
         await document.SaveAsync(stream, false);
         return stream.ToArray();
     }
 
-    public static void AddPdfPages(PdfDocument document, string html, PdfGenerateConfig config)
+    public static void AddPdfPages(PdfDocument document, string html, PdfOptions options)
     {
         var adapter = RenderAdapter.Instance;
-        var effectivePageSize = config.GetEffectivePageSize();
+        var effectivePageSize = options.GetEffectivePageSize();
 
         double pageWidth = effectivePageSize.Width;
         double pageHeight = effectivePageSize.Height;
-        double contentWidth = pageWidth - config.MarginLeft - config.MarginRight;
-        double contentHeight = pageHeight - config.MarginTop - config.MarginBottom;
+        double contentWidth = pageWidth - options.MarginLeft - options.MarginRight;
+        double contentHeight = pageHeight - options.MarginTop - options.MarginBottom;
 
         using var container = new HtmlContainer(adapter);
         container.SetHtml(html);
 
-        // Configure pagination properties
         container.PageSize = new RSize(pageWidth, pageHeight);
-        container.MarginTop = (int)Math.Round(config.MarginTop);
-        container.MarginBottom = (int)Math.Round(config.MarginBottom);
-        container.MarginLeft = (int)Math.Round(config.MarginLeft);
-        container.MarginRight = (int)Math.Round(config.MarginRight);
-        container.MaxSize = new RSize(contentWidth, 0); // unlimited height for measure
-        container.Location = new RPoint(config.MarginLeft, config.MarginTop);
+        container.MarginTop = (int)Math.Round(options.MarginTop);
+        container.MarginBottom = (int)Math.Round(options.MarginBottom);
+        container.MarginLeft = (int)Math.Round(options.MarginLeft);
+        container.MarginRight = (int)Math.Round(options.MarginRight);
+        container.MaxSize = new RSize(contentWidth, 0);
+        container.Location = new RPoint(options.MarginLeft, options.MarginTop);
 
-        // Measure pass
         using var measureContext = XGraphics.CreateMeasureContext(new XSize(pageWidth, pageHeight), XGraphicsUnit.Point, XPageDirection.Downwards);
         using var measureGraphics = new GraphicsAdapter(measureContext, adapter, new RRect(0, 0, pageWidth, pageHeight));
         container.PerformLayout(measureGraphics);
@@ -52,10 +52,8 @@ public static class PdfGenerator
         double totalHeight = container.ActualSize.Height;
         int pageCount = Math.Max(1, (int)Math.Ceiling(totalHeight / contentHeight));
 
-        // Enable height-based clipping for page rendering
         container.MaxSize = new RSize(contentWidth, contentHeight);
 
-        // Page loop
         for (int i = 0; i < pageCount; i++)
         {
             var page = document.AddPage();
@@ -66,12 +64,8 @@ public static class PdfGenerator
             using var pageGraphics = new GraphicsAdapter(
                 xGraphics, adapter, new RRect(0, 0, pageWidth, pageHeight));
 
-            // Offset content upward for subsequent pages
-            container.Location = new RPoint(config.MarginLeft, config.MarginTop - i * contentHeight);
-
-            // PerformLayout propagates Location to the root element
+            container.Location = new RPoint(options.MarginLeft, options.MarginTop - i * contentHeight);
             container.PerformLayout(pageGraphics);
-            // PerformPaint alone only uses it for the clip rect
             container.PerformPaint(pageGraphics);
         }
     }
