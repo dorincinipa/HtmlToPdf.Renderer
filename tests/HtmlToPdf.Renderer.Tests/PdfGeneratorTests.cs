@@ -4,9 +4,9 @@ namespace HtmlToPdf.Renderer.Tests;
 
 public class PdfGeneratorTests
 {
-    private static PdfGenerateConfig DefaultConfig() => new()
+    private static PdfOptions DefaultConfig() => new()
     {
-        PageSize = PdfGenerateConfig.PageSizes.A4,
+        PageSize = PageSize.A4,
         MarginTop = 20,
         MarginBottom = 20,
         MarginLeft = 20,
@@ -40,9 +40,9 @@ public class PdfGeneratorTests
     [Fact]
     public void GeneratePdf_WithMargins_PageDimensionsMatchConfig()
     {
-        var config = new PdfGenerateConfig
+        var config = new PdfOptions
         {
-            PageSize = PdfGenerateConfig.PageSizes.Letter,
+            PageSize = PageSize.Letter,
             MarginTop = 50,
             MarginBottom = 50,
             MarginLeft = 50,
@@ -64,9 +64,9 @@ public class PdfGeneratorTests
     [Fact]
     public void GeneratePdf_Landscape_SwapsDimensions()
     {
-        var config = new PdfGenerateConfig
+        var config = new PdfOptions
         {
-            PageSize = PdfGenerateConfig.PageSizes.A4,
+            PageSize = PageSize.A4,
             PageOrientation = PageOrientation.Landscape
         };
         var doc = PdfGenerator.GeneratePdf("<p>Landscape</p>", config);
