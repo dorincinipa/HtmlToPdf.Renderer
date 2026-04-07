@@ -9,6 +9,9 @@ public static class PdfGenerator
 {
     public static PdfBuilder Create() => new();
 
+    public static void LoadFontsFromFolder(string folderPath)
+        => FontResolver.Instance.LoadFontsFromFolder(folderPath);
+
     public static PdfDocument GeneratePdf(string html, PdfOptions options)
     {
         var document = new PdfDocument();
