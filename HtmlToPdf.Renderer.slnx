@@ -9,5 +9,6 @@
   <Folder Name="/samples/">
     <Project Path="samples/HtmlToPdf.Demo/HtmlToPdf.Demo.csproj" />
     <Project Path="samples/HtmlToPdf.WpfDemo/HtmlToPdf.WpfDemo.csproj" />
+    <Project Path="samples/HtmlToPdf.Api/HtmlToPdf.Api.csproj" />
   </Folder>
 </Solution>
