@@ -30,10 +30,8 @@ internal sealed class FontResolver : IFontResolver
 
     internal void RegisterFont(string familyName, byte[] fontData)
     {
-        if (familyName == null || fontData == null)
-        { 
-            throw new ArgumentNullException(nameof(familyName));
-        }
+        ArgumentNullException.ThrowIfNull(familyName);
+        ArgumentNullException.ThrowIfNull(fontData);
         _customFonts[familyName] = fontData;
         EnsureRegistered();
     }
