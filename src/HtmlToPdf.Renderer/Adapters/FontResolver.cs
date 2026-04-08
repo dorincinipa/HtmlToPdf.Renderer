@@ -77,7 +77,6 @@ internal sealed class FontResolver : IFontResolver
         if (_systemFonts.Value.ContainsKey(familyName))
             return new FontResolverInfo(familyName);
 
-        // Check if this is a CSS alias that maps to a known font
         if (_fontAliases.TryGetValue(familyName, out var target)
             && (_customFonts.ContainsKey(target) || _systemFonts.Value.ContainsKey(target)))
             return new FontResolverInfo(target);
@@ -93,7 +92,6 @@ internal sealed class FontResolver : IFontResolver
         if (_systemFonts.Value.TryGetValue(faceName, out var path))
             return File.ReadAllBytes(path);
 
-        // Check if this is a CSS alias that maps to a registered custom font
         if (_fontAliases.TryGetValue(faceName, out var target))
         {
             if (_customFonts.TryGetValue(target, out var aliasData))
@@ -132,13 +130,6 @@ internal sealed class FontResolver : IFontResolver
                 var name = Path.GetFileNameWithoutExtension(file);
                 fonts.TryAdd(name, file);
             }
-        }
-
-        // Add CSS font-family aliases for scanned system fonts
-        foreach (var (alias, target) in _fontAliases)
-        {
-            if (fonts.TryGetValue(target, out var targetPath))
-                fonts.TryAdd(alias, targetPath);
         }
 
         return fonts;
