@@ -27,6 +27,11 @@ internal sealed class FontResolver : IFontResolver
 
     internal void EnsureRegistered()
     {
+        // On Windows, PdfSharp uses UseWindowsFontsUnderWindows instead of a custom resolver.
+        // Setting FontResolver here would override that and break Windows font resolution.
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
         if (Interlocked.CompareExchange(ref _registered, 1, 0) != 0)
             return;
 
