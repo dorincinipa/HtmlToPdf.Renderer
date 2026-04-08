@@ -12,6 +12,17 @@ internal sealed class FontResolver : IFontResolver
     private readonly Lazy<ConcurrentDictionary<string, string>> _systemFonts = new(ScanSystemFonts);
     private int _registered;
 
+    private static readonly Dictionary<string, string> _fontAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Arial"] = "LiberationSans-Regular",
+        ["Helvetica"] = "LiberationSans-Regular",
+        ["Times New Roman"] = "LiberationSerif-Regular",
+        ["Times"] = "LiberationSerif-Regular",
+        ["Courier New"] = "LiberationMono-Regular",
+        ["Courier"] = "LiberationMono-Regular",
+        ["Verdana"] = "LiberationSans-Regular",
+    };
+
     private FontResolver() { }
 
     internal void EnsureRegistered()
@@ -66,6 +77,10 @@ internal sealed class FontResolver : IFontResolver
         if (_systemFonts.Value.ContainsKey(familyName))
             return new FontResolverInfo(familyName);
 
+        // Check if this is a CSS alias that maps to a registered custom font
+        if (_fontAliases.TryGetValue(familyName, out var target) && _customFonts.ContainsKey(target))
+            return new FontResolverInfo(target);
+
         return null;
     }
 
@@ -76,6 +91,16 @@ internal sealed class FontResolver : IFontResolver
 
         if (_systemFonts.Value.TryGetValue(faceName, out var path))
             return File.ReadAllBytes(path);
+
+        // Check if this is a CSS alias that maps to a registered custom font
+        if (_fontAliases.TryGetValue(faceName, out var target))
+        {
+            if (_customFonts.TryGetValue(target, out var aliasData))
+                return aliasData;
+
+            if (_systemFonts.Value.TryGetValue(target, out var aliasPath))
+                return File.ReadAllBytes(aliasPath);
+        }
 
         return [];
     }
@@ -106,6 +131,13 @@ internal sealed class FontResolver : IFontResolver
                 var name = Path.GetFileNameWithoutExtension(file);
                 fonts.TryAdd(name, file);
             }
+        }
+
+        // Add CSS font-family aliases for scanned system fonts
+        foreach (var (alias, target) in _fontAliases)
+        {
+            if (fonts.TryGetValue(target, out var targetPath))
+                fonts.TryAdd(alias, targetPath);
         }
 
         return fonts;
