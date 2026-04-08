@@ -13,10 +13,10 @@ public sealed class RenderAdapter : RAdapter
 
     static RenderAdapter()
     {
-        // PdfSharp 6.2.x cross-platform build requires explicit font resolver config.
-        // Enable system font resolution on Windows; other platforms need a custom IFontResolver.
-        // Only effective for Core build on Windows; no-op otherwise.
-        GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+        else
+            FontResolver.Instance.EnsureRegistered();
     }
 
     private RenderAdapter() { }

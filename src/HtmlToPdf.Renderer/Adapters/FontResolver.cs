@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using PdfSharp.Fonts;
 
 namespace HtmlToPdf.Renderer.Adapters;
@@ -8,11 +9,12 @@ internal sealed class FontResolver : IFontResolver
     internal static FontResolver Instance { get; } = new();
 
     private readonly ConcurrentDictionary<string, byte[]> _customFonts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Lazy<ConcurrentDictionary<string, string>> _systemFonts = new(ScanSystemFonts);
     private volatile bool _registered;
 
     private FontResolver() { }
 
-    private void EnsureRegistered()
+    internal void EnsureRegistered()
     {
         if (_registered)
             return;
@@ -62,6 +64,9 @@ internal sealed class FontResolver : IFontResolver
         if (_customFonts.ContainsKey(familyName))
             return new FontResolverInfo(familyName);
 
+        if (_systemFonts.Value.ContainsKey(familyName))
+            return new FontResolverInfo(familyName);
+
         return null;
     }
 
@@ -70,6 +75,40 @@ internal sealed class FontResolver : IFontResolver
         if (_customFonts.TryGetValue(faceName, out var data))
             return data;
 
+        if (_systemFonts.Value.TryGetValue(faceName, out var path))
+            return File.ReadAllBytes(path);
+
         return [];
+    }
+
+    private static ConcurrentDictionary<string, string> ScanSystemFonts()
+    {
+        var fonts = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return fonts; // Windows uses built-in PdfSharp resolution
+
+        string[] dirs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+            ? ["/Library/Fonts", "/System/Library/Fonts", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Fonts")]
+            : ["/usr/share/fonts", "/usr/local/share/fonts", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".fonts")];
+
+        foreach (var dir in dirs)
+        {
+            if (!Directory.Exists(dir))
+                continue;
+
+            foreach (var file in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories))
+            {
+                var ext = Path.GetExtension(file);
+                if (!ext.Equals(".ttf", StringComparison.OrdinalIgnoreCase) &&
+                    !ext.Equals(".otf", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var name = Path.GetFileNameWithoutExtension(file);
+                fonts.TryAdd(name, file);
+            }
+        }
+
+        return fonts;
     }
 }
