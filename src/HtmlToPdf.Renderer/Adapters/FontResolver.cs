@@ -77,8 +77,9 @@ internal sealed class FontResolver : IFontResolver
         if (_systemFonts.Value.ContainsKey(familyName))
             return new FontResolverInfo(familyName);
 
-        // Check if this is a CSS alias that maps to a registered custom font
-        if (_fontAliases.TryGetValue(familyName, out var target) && _customFonts.ContainsKey(target))
+        // Check if this is a CSS alias that maps to a known font
+        if (_fontAliases.TryGetValue(familyName, out var target)
+            && (_customFonts.ContainsKey(target) || _systemFonts.Value.ContainsKey(target)))
             return new FontResolverInfo(target);
 
         return null;
