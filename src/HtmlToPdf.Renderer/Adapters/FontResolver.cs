@@ -10,16 +10,15 @@ internal sealed class FontResolver : IFontResolver
 
     private readonly ConcurrentDictionary<string, byte[]> _customFonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly Lazy<ConcurrentDictionary<string, string>> _systemFonts = new(ScanSystemFonts);
-    private volatile bool _registered;
+    private int _registered;
 
     private FontResolver() { }
 
     internal void EnsureRegistered()
     {
-        if (_registered)
+        if (Interlocked.CompareExchange(ref _registered, 1, 0) != 0)
             return;
 
-        _registered = true;
         try
         {
             GlobalFontSettings.FontResolver = this;
