@@ -1,8 +1,8 @@
 using HtmlToPdf.Renderer.Adapters;
-using TheArtOfDev.HtmlRenderer.Adapters;
-using TheArtOfDev.HtmlRenderer.Adapters.Entities;
-using TheArtOfDev.HtmlRenderer.Core;
-using TheArtOfDev.HtmlRenderer.Core.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Core;
+using HtmlToPdf.Renderer.HtmlEngine.Core.Entities;
 
 namespace HtmlToPdf.Renderer;
 

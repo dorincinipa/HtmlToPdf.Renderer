@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/HtmlRenderer/HtmlRenderer.csproj" />
     <Project Path="src/HtmlToPdf.Renderer/HtmlToPdf.Renderer.csproj" />
   </Folder>
   <Folder Name="/tests/">

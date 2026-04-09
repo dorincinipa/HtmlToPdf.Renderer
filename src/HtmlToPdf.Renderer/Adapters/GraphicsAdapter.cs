@@ -1,11 +1,14 @@
 using PdfSharp.Drawing;
-using TheArtOfDev.HtmlRenderer.Adapters;
-using TheArtOfDev.HtmlRenderer.Adapters.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters.Entities;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
 internal sealed class GraphicsAdapter : RGraphics
 {
+    private static readonly XStringFormat _ltrFormat = new() { Alignment = XStringAlignment.Near, LineAlignment = XLineAlignment.Near };
+    private static readonly XStringFormat _rtlFormat = new() { Alignment = XStringAlignment.Far, LineAlignment = XLineAlignment.Near };
+
     private readonly XGraphics _xGraphics;
     private readonly Stack<XGraphicsState> _stateStack = new();
     private XSmoothingMode _previousSmoothingMode;
@@ -82,6 +85,14 @@ internal sealed class GraphicsAdapter : RGraphics
         if (string.IsNullOrEmpty(str))
             return;
 
+        var fullWidth = _xGraphics.MeasureString(str, xFont).Width;
+        if (fullWidth <= maxWidth)
+        {
+            charFit = str.Length;
+            charFitWidth = fullWidth;
+            return;
+        }
+
         int lo = 0, hi = str.Length;
         while (lo <= hi)
         {
@@ -105,13 +116,8 @@ internal sealed class GraphicsAdapter : RGraphics
     {
         var xFont = ((FontAdapter)font).XFont;
         var xBrush = new XSolidBrush(RenderAdapter.ToXColor(color));
-        var format = new XStringFormat
-        {
-            Alignment = rtl ? XStringAlignment.Far : XStringAlignment.Near,
-            LineAlignment = XLineAlignment.Near
-        };
         _xGraphics.DrawString(str, xFont, xBrush,
-            new XRect(point.X, point.Y, size.Width, size.Height), format);
+            new XRect(point.X, point.Y, size.Width, size.Height), rtl ? _rtlFormat : _ltrFormat);
     }
 
     public override void DrawLine(RPen pen, double x1, double y1, double x2, double y2)

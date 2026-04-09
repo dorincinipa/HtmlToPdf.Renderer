@@ -1,7 +1,7 @@
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
-using TheArtOfDev.HtmlRenderer.Adapters;
-using TheArtOfDev.HtmlRenderer.Adapters.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters.Entities;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
@@ -60,7 +60,6 @@ public sealed class RenderAdapter : RAdapter
         return new ImageAdapter(XImage.FromStream(memoryStream));
     }
 
-    // Fonts known to be available via PdfSharp on Windows used as fallback candidates.
     private static readonly string[] _fallbackFonts = { "Arial", "Verdana", "Courier New", "Times New Roman" };
 
     protected override RFont CreateFontInt(string family, double size, RFontStyle style)
@@ -73,7 +72,6 @@ public sealed class RenderAdapter : RAdapter
         }
         catch
         {
-            // Requested font not available — try fallback fonts
             foreach (var fallback in _fallbackFonts)
             {
                 try

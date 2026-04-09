@@ -1,5 +1,5 @@
 using PdfSharp.Drawing;
-using TheArtOfDev.HtmlRenderer.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
@@ -12,8 +12,5 @@ public sealed class BrushAdapter : RBrush
         XBrush = brush;
     }
 
-    public override void Dispose()
-    {
-        // No-op: brushes are cached by RAdapter and shared
-    }
+    public override void Dispose() { }
 }

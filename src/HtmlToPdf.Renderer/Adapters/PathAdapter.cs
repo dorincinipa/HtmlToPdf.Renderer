@@ -1,5 +1,5 @@
 using PdfSharp.Drawing;
-using TheArtOfDev.HtmlRenderer.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
@@ -59,8 +59,5 @@ public sealed class PathAdapter : RGraphicsPath
         _lastY = y;
     }
 
-    public override void Dispose()
-    {
-        // XGraphicsPath has no Dispose — no-op
-    }
+    public override void Dispose() { }
 }

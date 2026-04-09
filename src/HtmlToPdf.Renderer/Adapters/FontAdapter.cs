@@ -1,5 +1,5 @@
 using PdfSharp.Drawing;
-using TheArtOfDev.HtmlRenderer.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
@@ -24,7 +24,6 @@ public sealed class FontAdapter : RFont
         {
             if (_height == null)
             {
-                // CellAscent/CellDescent are on XFont (int), UnitsPerEm on XFontMetrics (int)
                 var unitsPerEm = (double)XFont.Metrics.UnitsPerEm;
                 _height = (XFont.CellAscent + XFont.CellDescent) / unitsPerEm * XFont.Size;
             }

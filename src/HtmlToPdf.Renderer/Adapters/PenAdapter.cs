@@ -1,6 +1,6 @@
 using PdfSharp.Drawing;
-using TheArtOfDev.HtmlRenderer.Adapters;
-using TheArtOfDev.HtmlRenderer.Adapters.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters.Entities;
 
 namespace HtmlToPdf.Renderer.Adapters;
 

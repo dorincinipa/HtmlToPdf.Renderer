@@ -30,8 +30,4 @@
     <PackageReference Include="PDFsharp" Version="6.2.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../HtmlRenderer/HtmlRenderer.csproj" />
-  </ItemGroup>
-
 </Project>

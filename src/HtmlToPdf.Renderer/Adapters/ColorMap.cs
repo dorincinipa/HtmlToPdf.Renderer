@@ -1,4 +1,4 @@
-using TheArtOfDev.HtmlRenderer.Adapters.Entities;
+using HtmlToPdf.Renderer.HtmlEngine.Adapters.Entities;
 
 namespace HtmlToPdf.Renderer.Adapters;
 
