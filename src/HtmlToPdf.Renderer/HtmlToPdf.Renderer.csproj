@@ -13,8 +13,8 @@
     <Description>HTML to PDF converter using PdfSharp and HtmlRenderer.Core</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Authors>Level3</Authors>
-    <RepositoryUrl>https://github.com/level3ro/HtmlToPdf.Renderer</RepositoryUrl>
+    <Authors>dorincinipa</Authors>
+    <RepositoryUrl>https://github.com/dorincinipa/HtmlToPdf.Renderer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
