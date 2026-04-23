@@ -18,6 +18,7 @@ public class PdfOptions
     public PageOrientation PageOrientation { get; set; } = PageOrientation.Portrait;
     public double DefaultMargin { get; set; }
     public string? FontFolder { get; set; }
+    public PdfSecurityOptions? Security { get; set; }
 
     public void SetMargins(double all)
     {
