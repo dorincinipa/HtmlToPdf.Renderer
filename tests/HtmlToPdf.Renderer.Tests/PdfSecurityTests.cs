@@ -156,6 +156,59 @@ public class PdfSecurityTests
     }
 
     [Fact]
+    public void Fluent_WithPassword_ProducesEncryptedDocument()
+    {
+        using var doc = PdfGenerator.Create()
+            .WithPassword("pw")
+            .GeneratePdf("<p>fluent-pw</p>");
+
+        Assert.True(doc.SecuritySettings.IsEncrypted);
+    }
+
+    [Fact]
+    public void Fluent_WithOwnerPassword_ProducesEncryptedDocument()
+    {
+        using var doc = PdfGenerator.Create()
+            .WithOwnerPassword("admin")
+            .GeneratePdf("<p>fluent-owner</p>");
+
+        Assert.True(doc.SecuritySettings.IsEncrypted);
+    }
+
+    [Fact]
+    public void Fluent_WithPermissions_AppliesToDocument()
+    {
+        using var doc = PdfGenerator.Create()
+            .WithOwnerPassword("admin")
+            .WithPermissions(PdfPermissions.ReadOnly)
+            .GeneratePdf("<p>fluent-perm</p>");
+
+        Assert.True(doc.SecuritySettings.PermitPrint);
+        Assert.False(doc.SecuritySettings.PermitModifyDocument);
+    }
+
+    [Fact]
+    public void Fluent_FullChain_AllValuesLandOnSameInstance()
+    {
+        using var doc = PdfGenerator.Create()
+            .WithPassword("user")
+            .WithOwnerPassword("owner")
+            .WithPermissions(PdfPermissions.ReadOnly)
+            .GeneratePdf("<p>chain</p>");
+
+        using var stream = new MemoryStream();
+        doc.Save(stream, false);
+
+        // User password survived subsequent With* calls and grants read access.
+        stream.Position = 0;
+        using (var r = PdfReader.Open(stream, "user", PdfDocumentOpenMode.Import))
+            Assert.True(r.PageCount >= 1);
+
+        Assert.True(doc.SecuritySettings.PermitPrint);
+        Assert.False(doc.SecuritySettings.PermitModifyDocument);
+    }
+
+    [Fact]
     public void GeneratePdf_PermissionsNone_EveryPermitFalse()
     {
         var options = new PdfOptions

@@ -49,6 +49,24 @@ public sealed class PdfBuilder
         return this;
     }
 
+    public PdfBuilder WithPassword(string userPassword)
+    {
+        (_options.Security ??= new PdfSecurityOptions()).UserPassword = userPassword;
+        return this;
+    }
+
+    public PdfBuilder WithOwnerPassword(string ownerPassword)
+    {
+        (_options.Security ??= new PdfSecurityOptions()).OwnerPassword = ownerPassword;
+        return this;
+    }
+
+    public PdfBuilder WithPermissions(PdfPermissions permissions)
+    {
+        (_options.Security ??= new PdfSecurityOptions()).Permissions = permissions;
+        return this;
+    }
+
     public PdfDocument GeneratePdf(string html)
     {
         return PdfGenerator.GeneratePdf(html, _options);
