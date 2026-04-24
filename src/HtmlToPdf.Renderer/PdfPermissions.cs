@@ -11,10 +11,9 @@ public enum PdfPermissions
     Annotate = 1 << 4,
     FillForms = 1 << 5,
     AssembleDocument = 1 << 6,
-    AccessibilityExtract = 1 << 7,
 
     All = Print | HighQualityPrint | ModifyContent | CopyContent |
-          Annotate | FillForms | AssembleDocument | AccessibilityExtract,
+          Annotate | FillForms | AssembleDocument,
 
-    ReadOnly = Print | HighQualityPrint | CopyContent | AccessibilityExtract
+    ReadOnly = Print | HighQualityPrint | CopyContent
 }
