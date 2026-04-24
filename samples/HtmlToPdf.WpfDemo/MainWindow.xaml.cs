@@ -74,6 +74,13 @@ public partial class MainWindow : Window
         if (double.TryParse(MarginBox.Text, out var margin))
             config.SetMargins(margin);
 
+        // do not use hardocoded passwords
+        config.Security = new PdfSecurityOptions {
+            UserPassword = "user",
+            OwnerPassword = "owner",
+            Permissions = PdfPermissions.None
+        };
+
         return config;
     }
 
