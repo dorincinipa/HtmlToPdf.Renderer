@@ -643,6 +643,13 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                         top = (prevSibling == null && ParentBox != null ? ParentBox.ClientTop : ParentBox == null ? Location.Y : 0) + MarginTopCollapse(prevSibling) + (prevSibling != null ? prevSibling.ActualBottom + prevSibling.ActualBorderBottomWidth : 0);
                         Location = new RPoint(left, top);
                         ActualBottom = top;
+
+                        if (PageBreakBefore == CssConstants.Always ||
+                            (prevSibling != null && prevSibling.PageBreakAfter == CssConstants.Always))
+                        {
+                            ForcePageBreakBefore();
+                            ActualBottom = Location.Y;
+                        }
                     }
                 }
 
@@ -1124,6 +1131,21 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
             }
 
             return false;
+        }
+
+        private void ForcePageBreakBefore()
+        {
+            var container = HtmlContainer;
+            if (container == null || container.PageSize.Height <= 0)
+                return;
+            var relativeTop = Location.Y - container.MarginTop;
+            if (relativeTop < 0.1)
+                return;
+            var rem = relativeTop % container.PageSize.Height;
+            if (rem < 0.1)
+                return;
+            var diff = container.PageSize.Height - rem;
+            Location = new RPoint(Location.X, Location.Y + diff);
         }
 
         /// <summary>

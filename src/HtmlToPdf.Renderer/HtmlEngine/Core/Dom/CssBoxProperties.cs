@@ -73,6 +73,8 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
         private string _paddingRight = "0";
         private string _paddingTop = "0";
         private string _pageBreakInside = CssConstants.Auto;
+        private string _pageBreakBefore = CssConstants.Auto;
+        private string _pageBreakAfter = CssConstants.Auto;
         private string _right;
         private string _textAlign = string.Empty;
         private string _textDecoration = string.Empty;
@@ -391,10 +393,19 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
         public string PageBreakInside
         {
             get { return _pageBreakInside; }
-            set
-            {
-                _pageBreakInside = value;
-            }
+            set { _pageBreakInside = value; }
+        }
+
+        public string PageBreakBefore
+        {
+            get { return _pageBreakBefore; }
+            set { _pageBreakBefore = value; }
+        }
+
+        public string PageBreakAfter
+        {
+            get { return _pageBreakAfter; }
+            set { _pageBreakAfter = value; }
         }
 
         public string Left

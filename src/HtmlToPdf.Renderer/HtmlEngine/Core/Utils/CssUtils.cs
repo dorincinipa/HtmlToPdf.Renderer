@@ -112,6 +112,10 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Utils
                     return cssBox.PaddingTop;
                 case "page-break-inside":
                     return cssBox.PageBreakInside;
+                case "page-break-before":
+                    return cssBox.PageBreakBefore;
+                case "page-break-after":
+                    return cssBox.PageBreakAfter;
                 case "left":
                     return cssBox.Left;
                 case "top":
@@ -284,6 +288,12 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Utils
                     break;
                 case "page-break-inside":
                     cssBox.PageBreakInside = value;
+                    break;
+                case "page-break-before":
+                    cssBox.PageBreakBefore = value;
+                    break;
+                case "page-break-after":
+                    cssBox.PageBreakAfter = value;
                     break;
                 case "left":
                     cssBox.Left = value;
