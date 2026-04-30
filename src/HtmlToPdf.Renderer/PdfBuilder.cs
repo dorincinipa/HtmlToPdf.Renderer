@@ -61,6 +61,18 @@ public sealed class PdfBuilder
         return this;
     }
 
+    public PdfBuilder WithHeader(string html)
+    {
+        _options.Header = html;
+        return this;
+    }
+
+    public PdfBuilder WithFooter(string html)
+    {
+        _options.Footer = html;
+        return this;
+    }
+
     public PdfBuilder WithPermissions(PdfPermissions permissions)
     {
         (_options.Security ??= new PdfSecurityOptions()).Permissions = permissions;

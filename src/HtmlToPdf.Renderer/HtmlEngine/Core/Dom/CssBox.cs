@@ -1243,7 +1243,10 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                     if (IsRectVisible(actualRect, clip))
                     {
                         PaintBackground(g, actualRect, i == 0, i == rects.Length - 1);
-                        BordersDrawHandler.DrawBoxBorders(g, this, actualRect, i == 0, i == rects.Length - 1);
+                        if (HtmlTag?.Name == HtmlConstants.Hr)
+                            PaintHorizontalRule(g, actualRect);
+                        else
+                            BordersDrawHandler.DrawBoxBorders(g, this, actualRect, i == 0, i == rects.Length - 1);
                     }
                 }
 
@@ -1459,6 +1462,40 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
             pen.Width = 1;
             pen.DashStyle = RDashStyle.Solid;
             g.DrawLine(pen, x1, y, x2, y);
+        }
+
+        private void PaintHorizontalRule(RGraphics g, RRect rect)
+        {
+            double x1        = rect.X;
+            double x2        = rect.Right;
+            double y         = rect.Y + rect.Height / 2;
+            double lineWidth = ActualBorderTopWidth > 0 ? ActualBorderTopWidth : 1;
+            var    style     = BorderTopStyle;
+
+            if (style == CssConstants.Inset || style == CssConstants.Outset)
+            {
+                bool inset      = style == CssConstants.Inset;
+                var  topColor   = inset ? ActualBorderTopColor    : ActualBorderBottomColor;
+                var  botColor   = inset ? ActualBorderBottomColor : ActualBorderTopColor;
+
+                var pen = g.GetPen(topColor);
+                pen.Width = lineWidth; pen.DashStyle = RDashStyle.Solid;
+                g.DrawLine(pen, x1, y - lineWidth / 2, x2, y - lineWidth / 2);
+
+                pen = g.GetPen(botColor);
+                pen.Width = lineWidth; pen.DashStyle = RDashStyle.Solid;
+                g.DrawLine(pen, x1, y + lineWidth / 2, x2, y + lineWidth / 2);
+            }
+            else
+            {
+                var dashStyle = style == CssConstants.Dashed ? RDashStyle.Dash
+                              : style == CssConstants.Dotted ? RDashStyle.Dot
+                              : RDashStyle.Solid;
+                var color = ActualBorderTopColor.IsEmpty ? ActualColor : ActualBorderTopColor;
+                var pen   = g.GetPen(color);
+                pen.Width = lineWidth; pen.DashStyle = dashStyle;
+                g.DrawLine(pen, x1, y, x2, y);
+            }
         }
 
         /// <summary>

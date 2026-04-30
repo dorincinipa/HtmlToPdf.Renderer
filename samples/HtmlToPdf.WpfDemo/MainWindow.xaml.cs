@@ -74,6 +74,9 @@ public partial class MainWindow : Window
         if (double.TryParse(MarginBox.Text, out var margin))
             config.SetMargins(margin);
 
+        config.Header = "<div style='font-size:9px; color:#888;'>Sample</div>";
+        config.Footer = "<div style='font-size:9px; color:#888; text-align:right;'>{{PageNumber}} / {{TotalPages}}</div>";
+
         // do not use hardocoded passwords
         config.Security = new PdfSecurityOptions {
             UserPassword = "user",

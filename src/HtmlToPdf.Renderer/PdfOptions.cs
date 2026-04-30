@@ -19,6 +19,8 @@ public class PdfOptions
     public double DefaultMargin { get; set; }
     public string? FontFolder { get; set; }
     public PdfSecurityOptions? Security { get; set; }
+    public string? Header { get; set; }
+    public string? Footer { get; set; }
 
     public void SetMargins(double all)
     {

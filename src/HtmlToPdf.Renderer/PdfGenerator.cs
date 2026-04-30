@@ -72,7 +72,34 @@ public static class PdfGenerator
             container.Location = new RPoint(options.MarginLeft, options.MarginTop - i * contentHeight);
             container.PerformLayout(pageGraphics);
             container.PerformPaint(pageGraphics);
+
+            if (!string.IsNullOrEmpty(options.Header))
+                RenderHeaderFooter(pageGraphics, adapter,
+                    Substitute(options.Header, i + 1, pageCount),
+                    options.MarginLeft, 0, contentWidth, pageWidth);
+
+            if (!string.IsNullOrEmpty(options.Footer))
+                RenderHeaderFooter(pageGraphics, adapter,
+                    Substitute(options.Footer, i + 1, pageCount),
+                    options.MarginLeft, pageHeight - options.MarginBottom, contentWidth, pageWidth);
         }
+    }
+
+    private static string Substitute(string html, int pageNumber, int totalPages) =>
+        html.Replace("{{PageNumber}}", pageNumber.ToString())
+            .Replace("{{TotalPages}}", totalPages.ToString());
+
+    private static void RenderHeaderFooter(
+        GraphicsAdapter gfx, RenderAdapter adapter,
+        string html, double x, double y, double width, double pageWidth)
+    {
+        using var container = new HtmlContainer(adapter);
+        container.SetHtml(html);
+        container.PageSize = new RSize(pageWidth, 100_000);
+        container.MaxSize = new RSize(width, 0);
+        container.Location = new RPoint(x, y);
+        container.PerformLayout(gfx);
+        container.PerformPaint(gfx);
     }
 
     private static void ApplySecurity(PdfDocument document, PdfSecurityOptions? security)
