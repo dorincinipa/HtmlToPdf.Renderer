@@ -656,7 +656,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core
 
             if (MaxSize.Height > 0)
             {
-                g.PushClip(new RRect(_location.X, _location.Y, Math.Min(_maxSize.Width, PageSize.Width), Math.Min(_maxSize.Height, PageSize.Height)));
+                g.PushClip(new RRect(MarginLeft, MarginTop, Math.Min(_maxSize.Width, PageSize.Width), Math.Min(_maxSize.Height, PageSize.Height)));
             }
             else
             {
