@@ -82,6 +82,9 @@ public static class PdfGenerator
                 RenderHeaderFooter(pageGraphics, adapter,
                     Substitute(options.Footer, i + 1, pageCount),
                     options.MarginLeft, pageHeight - options.MarginBottom, contentWidth, pageWidth);
+
+            if (options.Stamp != null)
+                DrawStamp(xGraphics, options.Stamp, pageWidth, pageHeight);
         }
     }
 
@@ -100,6 +103,72 @@ public static class PdfGenerator
         container.Location = new RPoint(x, y);
         container.PerformLayout(gfx);
         container.PerformPaint(gfx);
+    }
+
+    private static void DrawStamp(XGraphics g, StampOptions stamp, double pageWidth, double pageHeight)
+    {
+        var state = g.Save();
+        try
+        {
+            if (stamp.Text != null)
+                DrawTextStamp(g, stamp, pageWidth, pageHeight);
+            else if (stamp.ImageData != null)
+                DrawImageStamp(g, stamp, pageWidth, pageHeight);
+        }
+        finally
+        {
+            g.Restore(state);
+        }
+    }
+
+    private static void DrawTextStamp(XGraphics g, StampOptions stamp, double pageWidth, double pageHeight)
+    {
+        var font = new XFont("Arial", stamp.FontSize, XFontStyleEx.Bold);
+        var base_ = stamp.Color;
+        var color = XColor.FromArgb(
+            (int)(stamp.Opacity * 255),
+            (int)(base_.R * 255),
+            (int)(base_.G * 255),
+            (int)(base_.B * 255));
+        var brush = new XSolidBrush(color);
+
+        g.TranslateTransform(pageWidth / 2, pageHeight / 2);
+        g.RotateTransform(stamp.Angle);
+
+        var size = g.MeasureString(stamp.Text!, font);
+        g.DrawString(stamp.Text!, font, brush,
+            new XRect(-size.Width / 2, -size.Height / 2, size.Width, size.Height),
+            XStringFormats.Center);
+    }
+
+    private const double StampEdgeMargin = 20;
+
+    private static void DrawImageStamp(XGraphics g, StampOptions stamp, double pageWidth, double pageHeight)
+    {
+        using var xImage = XImage.FromStream(new MemoryStream(stamp.ImageData!));
+
+        double w = stamp.ImageWidth  > 0 ? stamp.ImageWidth  : xImage.PointWidth;
+        double h = stamp.ImageHeight > 0 ? stamp.ImageHeight : xImage.PointHeight;
+
+        var (x, y) = stamp.Position switch
+        {
+            StampPosition.TopLeft     => (StampEdgeMargin, StampEdgeMargin),
+            StampPosition.TopRight    => (pageWidth  - w - StampEdgeMargin, StampEdgeMargin),
+            StampPosition.BottomLeft  => (StampEdgeMargin, pageHeight - h - StampEdgeMargin),
+            StampPosition.BottomRight => (pageWidth  - w - StampEdgeMargin, pageHeight - h - StampEdgeMargin),
+            _                         => ((pageWidth - w) / 2, (pageHeight - h) / 2),
+        };
+
+        if (stamp.Angle != 0)
+        {
+            g.TranslateTransform(x + w / 2, y + h / 2);
+            g.RotateTransform(stamp.Angle);
+            g.DrawImage(xImage, new XRect(-w / 2, -h / 2, w, h));
+        }
+        else
+        {
+            g.DrawImage(xImage, new XRect(x, y, w, h));
+        }
     }
 
     private static void ApplySecurity(PdfDocument document, PdfSecurityOptions? security)

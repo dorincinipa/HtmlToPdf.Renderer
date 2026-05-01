@@ -21,6 +21,7 @@ public class PdfOptions
     public PdfSecurityOptions? Security { get; set; }
     public string? Header { get; set; }
     public string? Footer { get; set; }
+    public StampOptions? Stamp { get; set; }
 
     public void SetMargins(double all)
     {

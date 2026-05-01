@@ -73,6 +73,12 @@ public sealed class PdfBuilder
         return this;
     }
 
+    public PdfBuilder WithStamp(StampOptions stamp)
+    {
+        _options.Stamp = stamp;
+        return this;
+    }
+
     public PdfBuilder WithPermissions(PdfPermissions permissions)
     {
         (_options.Security ??= new PdfSecurityOptions()).Permissions = permissions;
