@@ -1,5 +1,8 @@
 # HtmlToPdf.Renderer
 
+[![NuGet](https://img.shields.io/nuget/v/HtmlToPdf.Renderer.svg)](https://www.nuget.org/packages/HtmlToPdf.Renderer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A .NET 8 library that converts HTML/CSS to PDF using [PdfSharp 6.x](https://github.com/empira/PDFsharp) and [HtmlRenderer](https://github.com/ArthurHub/HTML-Renderer).
 
 Supports inline CSS, tables, images, multi-page pagination, and configurable page sizes (A4, Letter, Legal, A3) with portrait/landscape orientation.
