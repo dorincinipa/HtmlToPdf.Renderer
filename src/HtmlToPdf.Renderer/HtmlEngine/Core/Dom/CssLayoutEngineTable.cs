@@ -656,6 +656,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
             for (int i = 0; i < _allRows.Count; i++)
             {
                 var row = _allRows[i];
+                double rowTop = cury;
                 double curx = startx;
                 int curCol = 0;
                 bool breakPage = false;
@@ -728,6 +729,11 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                     maxBottom = 0;
                     continue;
                 }
+
+                // give the row real geometry so a background-color/border on the <tr> is painted
+                // behind its cells (cells are positioned directly, so the row would otherwise be 0x0)
+                row.Location = new RPoint(startx, rowTop);
+                row.Size = new RSize(Math.Max(0, maxRight - startx), Math.Max(0, maxBottom - rowTop));
 
                 cury = maxBottom + GetVerticalSpacing();
 
