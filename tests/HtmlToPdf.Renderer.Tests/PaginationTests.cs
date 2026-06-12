@@ -136,6 +136,62 @@ public class PaginationTests
             Assert.Contains($"Section", all); // headings present (word-split keeps "Section")
     }
 
+    [Fact]
+    public void PageBreakBefore_AlignsFollowingContentToTopOfNextPage()
+    {
+        // Short filler that sits on page 1 well above its bottom, a forced page break, then a marker.
+        // The marker must land at the top of page 2's content area, not drift down by the margins.
+        var html = @"<div>
+            <p>filler one</p><p>filler two</p><p>filler three</p>
+            <div style='page-break-before: always;'></div>
+            <p>PAGEBREAKMARKER</p>
+        </div>";
+
+        var options = Config();
+        var effective = options.GetEffectivePageSize();
+        double contentHeight = effective.Height - options.MarginTop - options.MarginBottom;
+        double contentWidth = effective.Width - options.MarginLeft - options.MarginRight;
+
+        var adapter = RenderAdapter.Instance;
+        using var container = new HtmlContainer(adapter);
+        container.SetHtml(html);
+        container.PageSize = new RSize(effective.Width, contentHeight); // matches PdfGenerator
+        container.MarginTop = (int)options.MarginTop;
+        container.MarginBottom = (int)options.MarginBottom;
+        container.MarginLeft = (int)options.MarginLeft;
+        container.MarginRight = (int)options.MarginRight;
+        container.MaxSize = new RSize(contentWidth, 0);
+        container.Location = new RPoint(options.MarginLeft, options.MarginTop);
+
+        using var ctx = XGraphics.CreateMeasureContext(new XSize(effective.Width, effective.Height), XGraphicsUnit.Point, XPageDirection.Downwards);
+        using var layoutG = new GraphicsAdapter(ctx, adapter, new RRect(0, 0, effective.Width, effective.Height));
+        container.PerformLayout(layoutG);
+
+        double totalHeight = container.ActualSize.Height;
+        int pageCount = Math.Max(1, (int)Math.Ceiling(totalHeight / contentHeight));
+
+        var recorder = new RecordingGraphics(adapter, ctx, new RRect(0, -1_000_000, effective.Width, 2_000_000));
+        double? markerY = null;
+        int markerPage = -1;
+        for (int i = 0; i < pageCount; i++)
+        {
+            int before = recorder.Drawn.Count;
+            var clip = new RRect(options.MarginLeft, options.MarginTop + i * contentHeight, contentWidth, contentHeight);
+            container.PerformPaint(recorder, clip);
+            foreach (var d in recorder.Drawn.Skip(before))
+            {
+                if (d.Text == "PAGEBREAKMARKER") { markerY = d.Y; markerPage = i; }
+            }
+        }
+
+        Assert.True(markerY.HasValue, "marker was never painted");
+        Assert.Equal(1, markerPage); // the page after the forced break
+
+        double offsetFromPageTop = markerY!.Value - (options.MarginTop + markerPage * contentHeight);
+        Assert.True(offsetFromPageTop < 30,
+            $"marker should sit at the top of page 2 but is {offsetFromPageTop:F1}pt below it");
+    }
+
     private static int ContentLength(PdfPage page)
     {
         int total = 0;

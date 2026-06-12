@@ -42,7 +42,7 @@ public static class PdfGenerator
         using var container = new HtmlContainer(adapter);
         container.SetHtml(html);
 
-        container.PageSize = new RSize(pageWidth, pageHeight);
+        container.PageSize = new RSize(pageWidth, contentHeight);
         container.MarginTop = (int)Math.Round(options.MarginTop);
         container.MarginBottom = (int)Math.Round(options.MarginBottom);
         container.MarginLeft = (int)Math.Round(options.MarginLeft);
