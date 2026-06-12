@@ -78,12 +78,13 @@ public partial class MainWindow : Window
         config.Footer = "<div style='font-size:9px; color:#888; text-align:right;'>{{PageNumber}} / {{TotalPages}}</div>";
 
         // do not use hardocoded passwords
+        /*
         config.Security = new PdfSecurityOptions {
             UserPassword = "user",
             OwnerPassword = "owner",
             Permissions = PdfPermissions.None
         };
-
+        */
         return config;
     }
 
