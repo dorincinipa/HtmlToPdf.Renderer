@@ -652,16 +652,24 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core
         /// <param name="g">the device to use to render</param>
         public void PerformPaint(RGraphics g)
         {
+            var clip = MaxSize.Height > 0
+                ? new RRect(MarginLeft, MarginTop, Math.Min(_maxSize.Width, PageSize.Width), Math.Min(_maxSize.Height, PageSize.Height))
+                : new RRect(MarginLeft, MarginTop, PageSize.Width, PageSize.Height);
+            PerformPaint(g, clip);
+        }
+
+        /// <summary>
+        /// Render the html using the given device, clipping to the given rectangle.<br/>
+        /// Used for paged rendering where the caller translates the device to bring a specific
+        /// vertical slice of the (single, full) layout into view and clips it to the page area.
+        /// </summary>
+        /// <param name="g">the device to use to render</param>
+        /// <param name="clip">the clip rectangle in layout coordinates</param>
+        public void PerformPaint(RGraphics g, RRect clip)
+        {
             ArgChecker.AssertArgNotNull(g, "g");
 
-            if (MaxSize.Height > 0)
-            {
-                g.PushClip(new RRect(MarginLeft, MarginTop, Math.Min(_maxSize.Width, PageSize.Width), Math.Min(_maxSize.Height, PageSize.Height)));
-            }
-            else
-            {
-                g.PushClip(new RRect(MarginLeft, MarginTop, PageSize.Width, PageSize.Height));
-            }
+            g.PushClip(clip);
 
             if (_root != null)
             {

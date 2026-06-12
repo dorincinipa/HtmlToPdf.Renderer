@@ -74,6 +74,11 @@ public sealed class HtmlContainer : IDisposable
         _containerInt.PerformPaint(g);
     }
 
+    public void PerformPaint(RGraphics g, RRect clip)
+    {
+        _containerInt.PerformPaint(g, clip);
+    }
+
     public event EventHandler<HtmlImageLoadEventArgs>? ImageLoad
     {
         add => _containerInt.ImageLoad += value;

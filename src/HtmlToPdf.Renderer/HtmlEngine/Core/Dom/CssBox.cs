@@ -1014,39 +1014,46 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                 maxSum = marginSum;
             }
 
-            // add the padding 
-            paddingSum += box.ActualBorderLeftWidth + box.ActualBorderRightWidth + box.ActualPaddingRight + box.ActualPaddingLeft;
-
-
-            // for tables the padding also contains the spacing between cells
-            if (box.Display == CssConstants.Table)
-                paddingSum += CssLayoutEngineTable.GetTableSpacing(box);
-
-            if (box.Words.Count > 0)
+            if (box.Display == CssConstants.Table || box.Display == CssConstants.InlineTable)
             {
-                // calculate the min and max sum for all the words in the box
-                foreach (CssRect word in box.Words)
-                {
-                    maxSum += word.FullWidth + (word.HasSpaceBefore ? word.OwnerBox.ActualWordSpacing : 0);
-                    min = Math.Max(min, word.Width);
-                }
-
-                // remove the last word padding
-                if (box.Words.Count > 0 && !box.Words[box.Words.Count - 1].HasSpaceAfter)
-                    maxSum -= box.Words[box.Words.Count - 1].ActualWordSpacing;
+                // a table is sized by its own column algorithm so measure it atomically, otherwise a
+                // nested table's columns would be flattened to single words and overflow its parent cell
+                double tableMin, tableMax;
+                CssLayoutEngineTable.GetTableMinMaxWidth(box, out tableMin, out tableMax);
+                maxSum += tableMax;
+                min = Math.Max(min, tableMin);
             }
             else
             {
-                // recursively on all the child boxes
-                for (int i = 0; i < box.Boxes.Count; i++)
+                // add the padding
+                paddingSum += box.ActualBorderLeftWidth + box.ActualBorderRightWidth + box.ActualPaddingRight + box.ActualPaddingLeft;
+
+                if (box.Words.Count > 0)
                 {
-                    CssBox childBox = box.Boxes[i];
-                    marginSum += childBox.ActualMarginLeft + childBox.ActualMarginRight;
+                    // calculate the min and max sum for all the words in the box
+                    foreach (CssRect word in box.Words)
+                    {
+                        maxSum += word.FullWidth + (word.HasSpaceBefore ? word.OwnerBox.ActualWordSpacing : 0);
+                        min = Math.Max(min, word.Width);
+                    }
 
-                    //maxSum += childBox.ActualMarginLeft + childBox.ActualMarginRight;
-                    GetMinMaxSumWords(childBox, ref min, ref maxSum, ref paddingSum, ref marginSum);
+                    // remove the last word padding
+                    if (box.Words.Count > 0 && !box.Words[box.Words.Count - 1].HasSpaceAfter)
+                        maxSum -= box.Words[box.Words.Count - 1].ActualWordSpacing;
+                }
+                else
+                {
+                    // recursively on all the child boxes
+                    for (int i = 0; i < box.Boxes.Count; i++)
+                    {
+                        CssBox childBox = box.Boxes[i];
+                        marginSum += childBox.ActualMarginLeft + childBox.ActualMarginRight;
 
-                    marginSum -= childBox.ActualMarginLeft + childBox.ActualMarginRight;
+                        //maxSum += childBox.ActualMarginLeft + childBox.ActualMarginRight;
+                        GetMinMaxSumWords(childBox, ref min, ref maxSum, ref paddingSum, ref marginSum);
+
+                        marginSum -= childBox.ActualMarginLeft + childBox.ActualMarginRight;
+                    }
                 }
             }
 

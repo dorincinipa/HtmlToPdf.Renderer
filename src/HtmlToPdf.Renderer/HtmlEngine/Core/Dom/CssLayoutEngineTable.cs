@@ -105,6 +105,47 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
         }
 
         /// <summary>
+        /// Get the min and max width of the given table box by its content, including the table
+        /// borders, padding and cell spacing.<br/>
+        /// Used so a nested table reserves enough width in its parent cell instead of overflowing it.
+        /// </summary>
+        /// <param name="tableBox">the table box to measure</param>
+        /// <param name="minWidth">the minimum width the table needs without clipping its cells content</param>
+        /// <param name="maxWidth">the width the table needs so its content does not wrap</param>
+        public static void GetTableMinMaxWidth(CssBox tableBox, out double minWidth, out double maxWidth)
+        {
+            var table = new CssLayoutEngineTable(tableBox);
+            table.AssignBoxKinds();
+            table.InsertEmptyBoxes();
+
+            if (table._columns.Count > 0)
+            {
+                table._columnCount = table._columns.Count;
+            }
+            else
+            {
+                foreach (CssBox b in table._allRows)
+                    table._columnCount = Math.Max(table._columnCount, b.Boxes.Count);
+            }
+
+            table._columnWidths = new double[table._columnCount];
+
+            double[] minFullWidths, maxFullWidths;
+            table.GetColumnsMinMaxWidthByContent(false, out minFullWidths, out maxFullWidths);
+
+            double extra = GetHorizontalSpacing(tableBox) * (table._columnCount + 1)
+                           + tableBox.ActualBorderLeftWidth + tableBox.ActualBorderRightWidth
+                           + tableBox.ActualPaddingLeft + tableBox.ActualPaddingRight;
+
+            minWidth = extra;
+            maxWidth = extra;
+            foreach (var w in minFullWidths)
+                minWidth += w;
+            foreach (var w in maxFullWidths)
+                maxWidth += w;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="g"></param>

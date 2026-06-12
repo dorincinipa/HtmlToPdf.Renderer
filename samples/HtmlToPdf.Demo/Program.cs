@@ -17,6 +17,7 @@ var html = """
         <ul style="color: #555; line-height: 1.8;">
             <li>Inline CSS styling (colors, fonts, borders)</li>
             <li>Tables with headers and styled cells</li>
+            <li>Nested tables inside cells</li>
             <li>Automatic multi-page pagination</li>
             <li>Configurable page size, orientation, and margins</li>
         </ul>
@@ -42,6 +43,41 @@ var html = """
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">Widget C</td>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">Deluxe widget</td>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$29.99</td>
+            </tr>
+        </table>
+
+        <h2 style="color: #2c3e50; margin-top: 24px;">Nested Table</h2>
+        <p style="color: #555; line-height: 1.6;">Each order cell contains its own line-items table.</p>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background-color: #3498db; color: white;">
+                <th style="padding: 8px; text-align: left;">Order</th>
+                <th style="padding: 8px; text-align: left;">Line Items</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; vertical-align: top;">#1001</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 4px; border: 1px solid #eee;">Widget A</td>
+                            <td style="padding: 4px; border: 1px solid #eee; text-align: right;">$9.99</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; border: 1px solid #eee;">Widget B</td>
+                            <td style="padding: 4px; border: 1px solid #eee; text-align: right;">$19.99</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; vertical-align: top;">#1002</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 4px; border: 1px solid #eee;">Widget C</td>
+                            <td style="padding: 4px; border: 1px solid #eee; text-align: right;">$29.99</td>
+                        </tr>
+                    </table>
+                </td>
             </tr>
         </table>
     </div>

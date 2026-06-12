@@ -52,12 +52,15 @@ public static class PdfGenerator
 
         using var measureContext = XGraphics.CreateMeasureContext(new XSize(pageWidth, pageHeight), XGraphicsUnit.Point, XPageDirection.Downwards);
         using var measureGraphics = new GraphicsAdapter(measureContext, adapter, new RRect(0, 0, pageWidth, pageHeight));
+
+        // Lay out the whole document once at its natural position. Each page is then rendered by
+        // translating the painter to bring that page's vertical slice into view and clipping to it.
+        // Re-laying out per page (at a negative offset) is not safe: the layout engine assumes a
+        // non-negative origin, so it would corrupt the layout and drop trailing content.
         container.PerformLayout(measureGraphics);
 
         double totalHeight = container.ActualSize.Height;
         int pageCount = Math.Max(1, (int)Math.Ceiling(totalHeight / contentHeight));
-
-        container.MaxSize = new RSize(contentWidth, contentHeight);
 
         for (int i = 0; i < pageCount; i++)
         {
@@ -69,9 +72,11 @@ public static class PdfGenerator
             using var pageGraphics = new GraphicsAdapter(
                 xGraphics, adapter, new RRect(0, 0, pageWidth, pageHeight));
 
-            container.Location = new RPoint(options.MarginLeft, options.MarginTop - i * contentHeight);
-            container.PerformLayout(pageGraphics);
-            container.PerformPaint(pageGraphics);
+            var state = xGraphics.Save();
+            xGraphics.TranslateTransform(0, -i * contentHeight);
+            var clip = new RRect(options.MarginLeft, options.MarginTop + i * contentHeight, contentWidth, contentHeight);
+            container.PerformPaint(pageGraphics, clip);
+            xGraphics.Restore(state);
 
             if (!string.IsNullOrEmpty(options.Header))
                 RenderHeaderFooter(pageGraphics, adapter,

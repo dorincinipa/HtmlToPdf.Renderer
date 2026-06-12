@@ -138,6 +138,16 @@ public class PdfGeneratorTests
     }
 
     [Fact]
+    public void GeneratePdf_LeadingHeading_DoesNotForceBlankFirstPage()
+    {
+        // A short document that starts with an h1 must fit on a single page. The default
+        // stylesheet must not force a page break before headings, which would leave page 1 blank.
+        var html = "<div style='padding:10px;'><h1>Title</h1><p>Body content.</p></div>";
+        var doc = PdfGenerator.GeneratePdf(html, DefaultConfig());
+        Assert.Equal(1, doc.PageCount);
+    }
+
+    [Fact]
     public void AddPdfPages_AppendsToExistingDocument()
     {
         var doc = new PdfDocument();
