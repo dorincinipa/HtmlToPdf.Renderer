@@ -28,6 +28,21 @@ public sealed class HtmlContainer : IDisposable
 
     public RSize ActualSize => _containerInt.ActualSize;
 
+    public RColor BodyBackgroundColor
+    {
+        get
+        {
+            var root = _containerInt.Root;
+            if (root == null) return RColor.Empty;
+            foreach (var box in root.Boxes)
+            {
+                if (box.HtmlTag?.Name == "body")
+                    return box.ActualBackgroundColor;
+            }
+            return RColor.Empty;
+        }
+    }
+
     public RPoint Location
     {
         get => _containerInt.Location;

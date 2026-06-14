@@ -62,6 +62,11 @@ public static class PdfGenerator
         double totalHeight = container.ActualSize.Height;
         int pageCount = Math.Max(1, (int)Math.Ceiling(totalHeight / contentHeight));
 
+        var bodyBg = container.BodyBackgroundColor;
+        XSolidBrush? bodyBgBrush = null;
+        if (!bodyBg.IsEmpty && bodyBg.A > 0)
+            bodyBgBrush = new XSolidBrush(XColor.FromArgb(bodyBg.A, bodyBg.R, bodyBg.G, bodyBg.B));
+
         for (int i = 0; i < pageCount; i++)
         {
             var page = document.AddPage();
@@ -71,6 +76,9 @@ public static class PdfGenerator
             using var xGraphics = XGraphics.FromPdfPage(page);
             using var pageGraphics = new GraphicsAdapter(
                 xGraphics, adapter, new RRect(0, 0, pageWidth, pageHeight));
+
+            if (bodyBgBrush != null)
+                xGraphics.DrawRectangle(bodyBgBrush, 0, 0, pageWidth, pageHeight);
 
             var state = xGraphics.Save();
             xGraphics.TranslateTransform(0, -i * contentHeight);
