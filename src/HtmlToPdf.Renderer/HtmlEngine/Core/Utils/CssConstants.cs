@@ -84,6 +84,9 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Utils
         public const string TableColumnGroup = "table-column-group";
         public const string TableCell = "table-cell";
         public const string TableCaption = "table-caption";
+        public const string Capitalize = "capitalize";
+        public const string Lowercase = "lowercase";
+        public const string Uppercase = "uppercase";
         public const string TextBottom = "text-bottom";
         public const string TextTop = "text-top";
         public const string Thin = "thin";

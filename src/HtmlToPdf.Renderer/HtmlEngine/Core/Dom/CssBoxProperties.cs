@@ -79,6 +79,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
         private string _textAlign = string.Empty;
         private string _textDecoration = string.Empty;
         private string _textIndent = "0";
+        private string _textTransform = "none";
         private string _top = "auto";
         private string _position = "static";
         private string _verticalAlign = "baseline";
@@ -564,6 +565,12 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
         {
             get { return _textDecoration; }
             set { _textDecoration = value; }
+        }
+
+        public string TextTransform
+        {
+            get { return _textTransform; }
+            set { _textTransform = value; }
         }
 
         public string WhiteSpace
@@ -1510,6 +1517,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                 _lineHeight = p._lineHeight;
                 _wordBreak = p.WordBreak;
                 _direction = p._direction;
+                _textTransform = p._textTransform;
 
                 if (everything)
                 {

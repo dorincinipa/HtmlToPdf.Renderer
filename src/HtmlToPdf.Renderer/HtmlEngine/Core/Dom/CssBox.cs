@@ -544,7 +544,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                     if (endIdx > startIdx)
                     {
                         if (preserveSpaces)
-                            _boxWords.Add(new CssRectWord(this, HtmlUtils.DecodeHtml(_text.Substring(startIdx, endIdx - startIdx)), false, false));
+                            _boxWords.Add(new CssRectWord(this, ApplyTextTransform(HtmlUtils.DecodeHtml(_text.Substring(startIdx, endIdx - startIdx))), false, false));
                     }
                     else
                     {
@@ -559,7 +559,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                         {
                             var hasSpaceBefore = !preserveSpaces && (startIdx > 0 && _boxWords.Count == 0 && char.IsWhiteSpace(_text[startIdx - 1]));
                             var hasSpaceAfter = !preserveSpaces && (endIdx < _text.Length && char.IsWhiteSpace(_text[endIdx]));
-                            _boxWords.Add(new CssRectWord(this, HtmlUtils.DecodeHtml(_text.Substring(startIdx, endIdx - startIdx)), hasSpaceBefore, hasSpaceAfter));
+                            _boxWords.Add(new CssRectWord(this, ApplyTextTransform(HtmlUtils.DecodeHtml(_text.Substring(startIdx, endIdx - startIdx))), hasSpaceBefore, hasSpaceAfter));
                         }
                     }
 
@@ -573,6 +573,22 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
 
                     startIdx = endIdx;
                 }
+            }
+        }
+
+        private string ApplyTextTransform(string text)
+        {
+            switch (TextTransform)
+            {
+                case CssConstants.Uppercase:
+                    return text.ToUpper();
+                case CssConstants.Lowercase:
+                    return text.ToLower();
+                case CssConstants.Capitalize:
+                    if (text.Length == 0) return text;
+                    return char.ToUpper(text[0]) + text.Substring(1);
+                default:
+                    return text;
             }
         }
 
