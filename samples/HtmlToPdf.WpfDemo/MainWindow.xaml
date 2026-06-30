@@ -29,6 +29,8 @@
 
             <TextBlock Text="Margins (pt):" VerticalAlignment="Center" Margin="16,0,6,0"/>
             <TextBox x:Name="MarginBox" Width="50" Text="40" VerticalAlignment="Center"/>
+
+            <CheckBox x:Name="PdfACheckBox" Content="PDF/A-1b" VerticalAlignment="Center" Margin="16,0,0,0"/>
         </StackPanel>
 
         <!-- HTML editor -->

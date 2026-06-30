@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using HtmlToPdf.Renderer;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
 namespace HtmlToPdf.WpfDemo;
@@ -40,10 +42,12 @@ public partial class MainWindow : Window
         try
         {
             var config = BuildConfig();
-            var document = PdfGenerator.GeneratePdf(html, config);
-            document.Save(dialog.FileName);
+            using var result = PdfGenerator.GeneratePdfWithResult(html, config);
+            result.Document.Save(dialog.FileName);
 
-            StatusText.Text = $"Saved to {dialog.FileName}";
+            StatusText.Text = $"Saved {result.PageCount} page(s) in {result.RenderTime.TotalMilliseconds:F0}ms — {dialog.FileName}";
+            if (result.Warnings.Count > 0)
+                StatusText.Text += $"  ({result.Warnings.Count} warning(s))";
 
             // Open the PDF
             Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
@@ -77,7 +81,19 @@ public partial class MainWindow : Window
         config.Header = "<div style='font-size:9px; color:#888;'>Sample</div>";
         config.Footer = "<div style='font-size:9px; color:#888; text-align:right;'>{{PageNumber}} / {{TotalPages}}</div>";
 
-        // do not use hardocoded passwords
+        config.StyleSheets = new Dictionary<string, string>
+        {
+            ["demo.css"] = DemoCss
+        };
+
+        config.Logger = new UiLogger(StatusText);
+        config.OnProgress = (current, total) => StatusText.Text = $"Rendering page {current} of {total}...";
+        config.OnRenderError = err => StatusText.Text = $"[{err.ErrorType}] {err.Message}";
+
+        if (PdfACheckBox.IsChecked == true)
+            config.Compliance = PdfCompliance.PdfA1B;
+
+        // do not use hardcoded passwords
         /*
         config.Security = new PdfSecurityOptions {
             UserPassword = "user",
@@ -88,9 +104,18 @@ public partial class MainWindow : Window
         return config;
     }
 
+    private const string DemoCss = """
+        body, div { font-family: Arial, sans-serif; }
+        .ext-card { background: #f0f8ff; border: 1px solid #b3d4f5; padding: 12px 16px; margin: 8px 0; }
+        .ext-badge { background: #2980b9; color: white; font-size: 11px; font-weight: bold; padding: 2px 8px; }
+        .ext-note { background: #fffde7; border-left: 4px solid #f9a825; padding: 10px 14px; margin: 8px 0; color: #555; }
+        .ext-success { background: #e8f5e9; border-left: 4px solid #27ae60; padding: 10px 14px; margin: 8px 0; color: #2d6a4f; }
+        """;
+
     private void LoadSampleHtml()
     {
         HtmlEditor.Text = """
+            <link rel="stylesheet" href="demo.css" />
             <div style="font-family: Arial, sans-serif; color: #333; padding: 10px;">
 
                 <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 8px;">
@@ -228,8 +253,47 @@ public partial class MainWindow : Window
                     .WithMargin(40)
                     .GeneratePdfAsync(html);</pre>
 
+                <h2 style="color: #2c3e50;">External CSS (via StyleSheets config)</h2>
+                <p style="line-height: 1.6;">
+                    The elements below are styled using classes defined in an external stylesheet
+                    registered via <code style="font-family:monospace;">config.StyleSheets["demo.css"]</code>
+                    and resolved through the <code style="font-family:monospace;">stylesheetLoad</code> event.
+                </p>
+                <div class="ext-card">
+                    <span class="ext-badge">External CSS</span>
+                    This card background and border come from <code style="font-family:monospace;">.ext-card</code>
+                    defined in <em>demo.css</em>, not from any inline style attribute.
+                </div>
+                <div class="ext-note">
+                    Note: External stylesheets allow reusing the same CSS across multiple HTML documents
+                    without embedding styles inline.
+                </div>
+                <div class="ext-success">
+                    Success: The <code style="font-family:monospace;">.ext-success</code> class was applied
+                    from the external stylesheet.
+                </div>
+
+                <h2 style="color: #2c3e50;">Non-ASCII characters</h2>
+                <p style="line-height: 1.6;">
+                    Romanian: <strong>ăîșțâ Ăîșțâ</strong> &nbsp;|&nbsp;
+                    German: <strong>äöü ÄÖÜ ß</strong> &nbsp;|&nbsp;
+                    French: <strong>éàùèê</strong> &nbsp;|&nbsp;
+                    Czech: <strong>čšžřů</strong>
+                </p>
+
                 <p style="color:#888; text-align:center; margin-top:24px;">- End of showcase -</p>
             </div>
             """;
+    }
+
+    private sealed class UiLogger(TextBlock output) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            output.Text = $"[{logLevel}] {formatter(state, exception)}";
+        }
     }
 }

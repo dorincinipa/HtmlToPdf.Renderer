@@ -1,5 +1,6 @@
 using HtmlToPdf.Renderer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HtmlToPdf.Api.Extensions;
 
@@ -19,7 +20,11 @@ public static class HtmlToPdfServiceCollectionExtensions
             PdfGenerator.LoadFontsFromFolder(options.FontFolder);
 
         services.AddSingleton(options);
-        services.AddSingleton<IPdfGenerator>(new HtmlToPdfGenerator(options));
+        services.AddSingleton<IPdfGenerator>(sp =>
+        {
+            options.Logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("HtmlToPdf");
+            return new HtmlToPdfGenerator(options);
+        });
 
         return services;
     }

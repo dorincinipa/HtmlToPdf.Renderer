@@ -1,9 +1,22 @@
 using HtmlToPdf.Renderer;
+using Microsoft.Extensions.Logging;
+
+using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
+var logger = loggerFactory.CreateLogger("HtmlToPdf");
 
 var outputDir = Path.Combine(AppContext.BaseDirectory, "output");
 Directory.CreateDirectory(outputDir);
 
+const string demoCss = """
+    body, div { font-family: Arial, sans-serif; }
+    .ext-card { background: #f0f8ff; border: 1px solid #b3d4f5; padding: 12px 16px; margin: 8px 0; }
+    .ext-badge { background: #2980b9; color: white; font-size: 11px; font-weight: bold; padding: 2px 8px; }
+    .ext-note { background: #fffde7; border-left: 4px solid #f9a825; padding: 10px 14px; margin: 8px 0; color: #555; }
+    .ext-success { background: #e8f5e9; border-left: 4px solid #27ae60; padding: 10px 14px; margin: 8px 0; color: #2d6a4f; }
+    """;
+
 var html = """
+            <link rel="stylesheet" href="demo.css" />
             <div style="font-family: Arial, sans-serif; color: #333; padding: 10px;">
 
                 <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 8px;">
@@ -141,17 +154,89 @@ var html = """
                     .WithMargin(40)
                     .GeneratePdfAsync(html);</pre>
 
+                <h2 style="color: #2c3e50;">External CSS (via StyleSheets config)</h2>
+                <p style="line-height: 1.6;">
+                    The elements below are styled using classes defined in an external stylesheet
+                    registered via <code style="font-family:monospace;">config.StyleSheets["demo.css"]</code>
+                    and resolved through the <code style="font-family:monospace;">stylesheetLoad</code> event.
+                </p>
+                <div class="ext-card">
+                    <span class="ext-badge">External CSS</span>
+                    This card background and border come from <code style="font-family:monospace;">.ext-card</code>
+                    defined in <em>demo.css</em>, not from any inline style attribute.
+                </div>
+                <div class="ext-note">
+                    Note: External stylesheets allow reusing the same CSS across multiple HTML documents
+                    without embedding styles inline.
+                </div>
+                <div class="ext-success">
+                    Success: The <code style="font-family:monospace;">.ext-success</code> class was applied
+                    from the external stylesheet.
+                </div>
+
+                <h2 style="color: #2c3e50;">Non-ASCII characters</h2>
+                <p style="line-height: 1.6;">
+                    Romanian: <strong>ăîșțâ Ăîșțâ</strong> &nbsp;|&nbsp;
+                    German: <strong>äöü ÄÖÜ ß</strong> &nbsp;|&nbsp;
+                    French: <strong>éàùèê</strong> &nbsp;|&nbsp;
+                    Czech: <strong>čšžřů</strong>
+                </p>
+
                 <p style="color:#888; text-align:center; margin-top:24px;">- End of showcase -</p>
             </div>
             """;
 
+// #67 - GeneratePdfWithResult: page count, render time, and captured warnings
+Console.WriteLine("Generating PDF...");
 var pdfPath = Path.Combine(outputDir, "demo.pdf");
-var bytes = await PdfGenerator.Create()
+using var result = PdfGenerator.Create()
     .WithPageSize(PageSize.A4)
     .WithMargin(40)
-    .GeneratePdfAsync(html);
+    .WithStyleSheet("demo.css", demoCss)
+    .WithLogger(logger)
+    .WithOnProgress((current, total) => Console.WriteLine($"  Page {current}/{total}"))
+    .WithOnRenderError(err => Console.Error.WriteLine($"[RenderError:{err.ErrorType}] {err.Message}"))
+    .GeneratePdfWithResult(html);
 
-await File.WriteAllBytesAsync(pdfPath, bytes);
-Console.WriteLine($"Created: {pdfPath}");
+result.Document.Save(pdfPath);
+Console.WriteLine($"Created: {pdfPath}  ({result.PageCount} page(s), {result.RenderTime.TotalMilliseconds:F0}ms)");
+if (result.Warnings.Count > 0)
+    Console.WriteLine($"  {result.Warnings.Count} render warning(s) captured");
 
-Console.WriteLine("\nDone! PDF saved to: " + outputDir);
+// #64 - CancellationToken: async generation with a timeout
+Console.WriteLine("\nAsync generation with CancellationToken (30s timeout)...");
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var asyncBytes = await PdfGenerator.Create()
+    .WithPageSize(PageSize.A4)
+    .WithMargin(40)
+    .GeneratePdfAsync("<p>Async cancellable page</p>", cts.Token);
+var asyncPath = Path.Combine(outputDir, "demo-async.pdf");
+await File.WriteAllBytesAsync(asyncPath, asyncBytes);
+Console.WriteLine($"Created: {asyncPath}");
+
+// #49 - PDF/A-1b compliance
+Console.WriteLine("\nGenerating PDF/A-1b...");
+using var pdfa = PdfGenerator.Create()
+    .WithPageSize(PageSize.A4)
+    .WithMargin(40)
+    .WithCompliance(PdfCompliance.PdfA1B)
+    .GeneratePdfWithResult("<h1>PDF/A-1b Archive Document</h1><p>This document claims PDF/A-1b conformance.</p>");
+var pdfaPath = Path.Combine(outputDir, "demo-pdfa.pdf");
+pdfa.Document.Save(pdfaPath);
+Console.WriteLine($"Created: {pdfaPath}  ({pdfa.PageCount} page(s), {pdfa.RenderTime.TotalMilliseconds:F0}ms)");
+
+// #18 - Thread-safe concurrent generation
+Console.WriteLine("\nConcurrent generation (3 PDFs in parallel)...");
+var fragments = new[] { "<p>Document 1</p>", "<p>Document 2</p>", "<p>Document 3</p>" };
+var concurrentTasks = fragments.Select((h, i) => Task.Run(async () =>
+{
+    var bytes = await PdfGenerator.Create().WithMargin(20).GeneratePdfAsync(h);
+    var path = Path.Combine(outputDir, $"demo-concurrent-{i + 1}.pdf");
+    await File.WriteAllBytesAsync(path, bytes);
+    return path;
+}));
+var concurrentPaths = await Task.WhenAll(concurrentTasks);
+foreach (var p in concurrentPaths)
+    Console.WriteLine($"Created: {p}");
+
+Console.WriteLine("\nDone! PDFs saved to: " + outputDir);
