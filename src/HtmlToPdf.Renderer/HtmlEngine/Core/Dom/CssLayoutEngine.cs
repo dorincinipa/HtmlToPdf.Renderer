@@ -259,7 +259,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Dom
                     }
 
                     if (DomUtils.IsBoxHasWhitespace(b))
-                        curx += box.ActualWordSpacing;
+                        curx += b.ActualWordSpacing;
 
                     foreach (var word in b.Words)
                     {

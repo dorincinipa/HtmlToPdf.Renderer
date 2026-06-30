@@ -13,6 +13,8 @@ public sealed class RenderAdapter : RAdapter
 
     static RenderAdapter()
     {
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
         if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             GlobalFontSettings.UseWindowsFontsUnderWindows = true;
         else

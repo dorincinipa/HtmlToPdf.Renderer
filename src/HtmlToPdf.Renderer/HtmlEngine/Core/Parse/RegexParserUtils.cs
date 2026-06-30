@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -75,7 +76,7 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Parse
         /// <summary>
         /// the regexes cache that is used by the parser so not to create regex each time
         /// </summary>
-        private static readonly Dictionary<string, Regex> _regexes = new Dictionary<string, Regex>();
+        private static readonly ConcurrentDictionary<string, Regex> _regexes = new ConcurrentDictionary<string, Regex>();
 
         #endregion
 
@@ -174,13 +175,8 @@ namespace HtmlToPdf.Renderer.HtmlEngine.Core.Parse
         /// <returns>the regex instance</returns>
         private static Regex GetRegex(string regex)
         {
-            Regex r;
-            if (!_regexes.TryGetValue(regex, out r))
-            {
-                r = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                _regexes[regex] = r;
-            }
-            return r;
+            return _regexes.GetOrAdd(regex,
+                static pattern => new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Singleline));
         }
     }
 }
