@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using HtmlToPdf.Renderer.Adapters;
@@ -73,6 +74,48 @@ public sealed class PdfBuilder
         return this;
     }
 
+    public PdfBuilder WithStyleSheet(string href, string cssContent)
+    {
+        (_options.StyleSheets ??= new Dictionary<string, string>())[href] = cssContent;
+        return this;
+    }
+
+    public PdfBuilder WithLogger(ILogger logger)
+    {
+        _options.Logger = logger;
+        return this;
+    }
+
+    public PdfBuilder WithOnProgress(Action<int, int> onProgress)
+    {
+        _options.OnProgress = onProgress;
+        return this;
+    }
+
+    public PdfBuilder WithOnRenderError(Action<PdfRenderError> onRenderError)
+    {
+        _options.OnRenderError = onRenderError;
+        return this;
+    }
+
+    public PdfBuilder WithContinueOnError(bool continueOnError = true)
+    {
+        _options.ContinueOnError = continueOnError;
+        return this;
+    }
+
+    public PdfBuilder WithCompliance(PdfCompliance compliance)
+    {
+        _options.Compliance = compliance;
+        return this;
+    }
+
+    public PdfBuilder WithIccProfile(byte[] iccProfileBytes)
+    {
+        _options.IccProfileBytes = iccProfileBytes;
+        return this;
+    }
+
     public PdfBuilder WithStamp(StampOptions stamp)
     {
         _options.Stamp = stamp;
@@ -86,12 +129,29 @@ public sealed class PdfBuilder
     }
 
     public PdfDocument GeneratePdf(string html)
-    {
-        return PdfGenerator.GeneratePdf(html, _options);
-    }
+        => PdfGenerator.GeneratePdf(html, _options);
 
-    public Task<byte[]> GeneratePdfAsync(string html)
-    {
-        return PdfGenerator.GeneratePdfAsync(html, _options);
-    }
+    public PdfDocument GeneratePdf(IEnumerable<string> htmlPages)
+        => PdfGenerator.GeneratePdf(htmlPages, _options);
+
+    public Task<byte[]> GeneratePdfAsync(string html, CancellationToken ct = default)
+        => PdfGenerator.GeneratePdfAsync(html, _options, ct);
+
+    public Task<byte[]> GeneratePdfAsync(IEnumerable<string> htmlPages, CancellationToken ct = default)
+        => PdfGenerator.GeneratePdfAsync(htmlPages, _options, ct);
+
+    public PdfGenerateResult GeneratePdfWithResult(string html)
+        => PdfGenerator.GeneratePdfWithResult(html, _options);
+
+    public PdfDocument AppendTo(byte[] existingPdf, string html)
+        => PdfGenerator.AppendHtml(existingPdf, html, _options);
+
+    public Task<byte[]> AppendToAsync(byte[] existingPdf, string html, CancellationToken ct = default)
+        => PdfGenerator.AppendHtmlAsync(existingPdf, html, _options, ct);
+
+    public PdfDocument GeneratePdfFromFile(string filePath)
+        => PdfGenerator.GeneratePdfFromFile(filePath, _options);
+
+    public Task<byte[]> GeneratePdfFromFileAsync(string filePath, CancellationToken ct = default)
+        => PdfGenerator.GeneratePdfFromFileAsync(filePath, _options, ct);
 }
